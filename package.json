@@ -1,0 +1,19 @@
+{
+    "name": "vealth",
+    "version": "1.0.0",
+    "description": "AI-driven equine age estimation app",
+    "main": "index.js",
+    "scripts": {
+      "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+      "backend": "cd backend && npm run dev",
+      "frontend": "cd frontend && npm run dev",
+      "build": "cd frontend && npm run build",
+      "start": "cd backend && npm start"
+    },
+    "keywords": ["equine", "ai", "veterinary", "age-estimation"],
+    "author": "Your Name",
+    "license": "MIT",
+    "devDependencies": {
+      "concurrently": "^8.2.0"
+    }
+  }
