@@ -1,3 +1,35 @@
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+
+const dbPath = path.join(__dirname, '../../database/vealth.db');
+
+class Database {
+  constructor() {
+    this.db = new sqlite3.Database(dbPath, (err) => {
+      if (err) {
+        console.error('❌ Error opening database:', err.message);
+      } else {
+        console.log('✅ Connected to SQLite database');
+      }
+    });
+  }
+
+  initialize() {
+    // Create tables if they don't exist
+    this.createTables();
+  }
+
+  createTables() {
+    // Users table (for session management)
+    const createUsersTable = `
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id TEXT UNIQUE NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_active DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
     // Image uploads table
     const createUploadsTable = `
       CREATE TABLE IF NOT EXISTS uploads (
@@ -21,8 +53,8 @@
         session_id TEXT NOT NULL,
         estimated_age TEXT,
         confidence_score REAL,
-        observations TEXT, -- JSON string
-        health_notes TEXT, -- JSON string
+        observations TEXT,
+        health_notes TEXT,
         analysis_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (upload_id) REFERENCES uploads (id),
         FOREIGN KEY (session_id) REFERENCES users (session_id)
@@ -35,7 +67,7 @@
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         analysis_id INTEGER NOT NULL,
         session_id TEXT NOT NULL,
-        report_data TEXT, -- JSON string of full report
+        report_data TEXT,
         pdf_path TEXT,
         generated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (analysis_id) REFERENCES analysis_results (id),
