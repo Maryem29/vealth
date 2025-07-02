@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Camera, Upload, History, Settings, Heart } from 'lucide-react';
 
-// Import components (we'll create these next)
-import Header from './components/Header';
-import CameraCapture from './components/CameraCapture';
-import ImageUpload from './components/ImageUpload';
-import AnalysisResults from './components/AnalysisResults';
-import ReportDownload from './components/ReportDownload';
-import LoadingSpinner from './components/LoadingSpinner';
+// Import components
+import Header from './components/Header.jsx';
+import CameraCapture from './components/CameraCapture.jsx';
+import ImageUpload from './components/ImageUpload.jsx';
+import AnalysisResults from './components/AnalysisResults.jsx';
+import ReportDownload from './components/ReportDownload.jsx';
+import LoadingSpinner from './components/LoadingSpinner.jsx';
 
 // Import services
 import { generateSessionId, getSessionId } from './utils/session';
@@ -16,7 +16,7 @@ import apiService from './services/api';
 
 function App() {
   // State management
-  const [currentStep, setCurrentStep] = useState('upload'); // upload, analyzing, results, report
+  const [currentStep, setCurrentStep] = useState('upload');
   const [sessionId, setSessionId] = useState(null);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [analysisResult, setAnalysisResult] = useState(null);
@@ -27,14 +27,19 @@ function App() {
   // Initialize session on app load
   useEffect(() => {
     const initSession = () => {
-      let existingSessionId = getSessionId();
-      if (!existingSessionId) {
-        existingSessionId = generateSessionId();
+      try {
+        let existingSessionId = getSessionId();
+        if (!existingSessionId) {
+          existingSessionId = generateSessionId();
+        }
+        setSessionId(existingSessionId);
+        console.log('Session initialized:', existingSessionId);
+      } catch (error) {
+        console.error('Session initialization error:', error);
+        // Fallback session ID
+        const fallbackSessionId = 'session_' + Date.now();
+        setSessionId(fallbackSessionId);
       }
-      setSessionId(existingSessionId);
-      
-      // Set session ID in API headers
-      apiService.defaults.headers['x-session-id'] = existingSessionId;
     };
 
     initSession();
@@ -42,43 +47,80 @@ function App() {
 
   // Handle image upload/capture
   const handleImageUpload = async (imageFile, imageData) => {
+    console.log('Upload started:', imageFile.name);
     setIsLoading(true);
     setError(null);
     
     try {
-      // Upload image to backend
-      const uploadResponse = await apiService.uploadImage(imageFile, sessionId);
+      // Mock upload response for testing
+      const mockUploadResponse = {
+        success: true,
+        uploadId: Date.now(),
+        file: {
+          id: Date.now(),
+          filename: imageFile.name,
+          originalname: imageFile.name,
+          size: imageFile.size,
+          url: imageData,
+          uploadedAt: new Date().toISOString()
+        }
+      };
+
+      setUploadedImage({
+        ...mockUploadResponse.file,
+        preview: imageData,
+        uploadId: mockUploadResponse.uploadId
+      });
+      setCurrentStep('analyzing');
       
-      if (uploadResponse.success) {
-        setUploadedImage({
-          ...uploadResponse.file,
-          preview: imageData, // For displaying the image
-          uploadId: uploadResponse.uploadId
-        });
-        setCurrentStep('analyzing');
-        
-        // Start analysis
-        await handleAnalyzeImage(uploadResponse.uploadId);
-      }
+      // Start analysis after a short delay
+      setTimeout(() => {
+        handleAnalyzeImage(mockUploadResponse.uploadId);
+      }, 2000);
+      
     } catch (error) {
       console.error('Upload error:', error);
       setError(error.message || 'Failed to upload image');
-    } finally {
       setIsLoading(false);
     }
   };
 
   // Handle image analysis
   const handleAnalyzeImage = async (uploadId) => {
+    console.log('Analysis started for upload:', uploadId);
     setIsLoading(true);
     
     try {
-      const analysisResponse = await apiService.analyzeImage(uploadId, sessionId);
+      // Mock analysis result
+      const mockAnalysisResult = {
+        success: true,
+        result: {
+          analysisId: uploadId,
+          estimatedAge: '8-10 years',
+          confidence: 0.85,
+          confidencePercentage: '85%',
+          category: 'adult',
+          observations: [
+            'Permanent central incisors show moderate wear',
+            'Dental stars visible on central incisors',
+            'Corner incisors show early Galvayne\'s groove development'
+          ],
+          healthNotes: [
+            'Even wear pattern observed',
+            'No obvious abnormalities detected',
+            'Recommend routine dental check-up'
+          ],
+          healthStatus: 'normal',
+          analysisMethod: 'Deep Learning Dental Pattern Recognition',
+          modelVersion: 'v2.1.3',
+          timestamp: new Date().toISOString(),
+          disclaimer: 'This analysis provides an estimation based on visible dental characteristics. For definitive age determination and dental health assessment, consult with a qualified equine veterinarian.'
+        }
+      };
       
-      if (analysisResponse.success) {
-        setAnalysisResult(analysisResponse.result);
-        setCurrentStep('results');
-      }
+      setAnalysisResult(mockAnalysisResult.result);
+      setCurrentStep('results');
+      
     } catch (error) {
       console.error('Analysis error:', error);
       setError(error.message || 'Failed to analyze image');
@@ -92,30 +134,21 @@ function App() {
   const handleGenerateReport = async () => {
     if (!analysisResult) return;
     
-    setIsLoading(true);
-    
-    try {
-      const reportResponse = await apiService.generateReport(analysisResult.analysisId, sessionId);
-      
-      if (reportResponse.success) {
-        setCurrentStep('report');
-      }
-    } catch (error) {
-      console.error('Report generation error:', error);
-      setError(error.message || 'Failed to generate report');
-    } finally {
-      setIsLoading(false);
-    }
+    console.log('Report generation started');
+    setCurrentStep('report');
   };
 
   // Reset to start new analysis
   const handleStartNew = () => {
+    console.log('Starting new analysis');
     setCurrentStep('upload');
     setUploadedImage(null);
     setAnalysisResult(null);
     setError(null);
     setUseCamera(false);
   };
+
+  console.log('App render - Current step:', currentStep, 'Session:', sessionId);
 
   // Main render
   return (
@@ -155,8 +188,8 @@ function App() {
           <div className="mb-8">
             <div className="flex items-center justify-center space-x-4">
               {/* Step indicators */}
-              <div className={`flex items-center ${currentStep === 'upload' ? 'text-primary-600' : currentStep === 'analyzing' || currentStep === 'results' || currentStep === 'report' ? 'text-green-600' : 'text-gray-400'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'upload' ? 'bg-primary-100 border-2 border-primary-600' : currentStep === 'analyzing' || currentStep === 'results' || currentStep === 'report' ? 'bg-green-100 border-2 border-green-600' : 'bg-gray-100 border-2 border-gray-300'}`}>
+              <div className={`flex items-center ${currentStep === 'upload' ? 'text-blue-600' : currentStep === 'analyzing' || currentStep === 'results' || currentStep === 'report' ? 'text-green-600' : 'text-gray-400'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'upload' ? 'bg-blue-100 border-2 border-blue-600' : currentStep === 'analyzing' || currentStep === 'results' || currentStep === 'report' ? 'bg-green-100 border-2 border-green-600' : 'bg-gray-100 border-2 border-gray-300'}`}>
                   <Upload className="w-4 h-4" />
                 </div>
                 <span className="ml-2 text-sm font-medium">Upload</span>
@@ -164,8 +197,8 @@ function App() {
               
               <div className={`w-8 h-0.5 ${currentStep === 'analyzing' || currentStep === 'results' || currentStep === 'report' ? 'bg-green-600' : 'bg-gray-300'}`}></div>
               
-              <div className={`flex items-center ${currentStep === 'analyzing' ? 'text-primary-600' : currentStep === 'results' || currentStep === 'report' ? 'text-green-600' : 'text-gray-400'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'analyzing' ? 'bg-primary-100 border-2 border-primary-600' : currentStep === 'results' || currentStep === 'report' ? 'bg-green-100 border-2 border-green-600' : 'bg-gray-100 border-2 border-gray-300'}`}>
+              <div className={`flex items-center ${currentStep === 'analyzing' ? 'text-blue-600' : currentStep === 'results' || currentStep === 'report' ? 'text-green-600' : 'text-gray-400'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'analyzing' ? 'bg-blue-100 border-2 border-blue-600' : currentStep === 'results' || currentStep === 'report' ? 'bg-green-100 border-2 border-green-600' : 'bg-gray-100 border-2 border-gray-300'}`}>
                   <Heart className="w-4 h-4" />
                 </div>
                 <span className="ml-2 text-sm font-medium">Analyze</span>
@@ -173,8 +206,8 @@ function App() {
               
               <div className={`w-8 h-0.5 ${currentStep === 'results' || currentStep === 'report' ? 'bg-green-600' : 'bg-gray-300'}`}></div>
               
-              <div className={`flex items-center ${currentStep === 'results' ? 'text-primary-600' : currentStep === 'report' ? 'text-green-600' : 'text-gray-400'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'results' ? 'bg-primary-100 border-2 border-primary-600' : currentStep === 'report' ? 'bg-green-100 border-2 border-green-600' : 'bg-gray-100 border-2 border-gray-300'}`}>
+              <div className={`flex items-center ${currentStep === 'results' ? 'text-blue-600' : currentStep === 'report' ? 'text-green-600' : 'text-gray-400'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'results' ? 'bg-blue-100 border-2 border-blue-600' : currentStep === 'report' ? 'bg-green-100 border-2 border-green-600' : 'bg-gray-100 border-2 border-gray-300'}`}>
                   <Settings className="w-4 h-4" />
                 </div>
                 <span className="ml-2 text-sm font-medium">Results</span>
@@ -193,13 +226,13 @@ function App() {
                       <div className="bg-white rounded-lg p-1 shadow-sm border">
                         <button
                           onClick={() => setUseCamera(false)}
-                          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${!useCamera ? 'bg-primary-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${!useCamera ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
                         >
                           Upload Photo
                         </button>
                         <button
                           onClick={() => setUseCamera(true)}
-                          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${useCamera ? 'bg-primary-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${useCamera ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
                         >
                           Take Photo
                         </button>
