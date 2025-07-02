@@ -12,7 +12,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 
 // Import services
 import { generateSessionId, getSessionId } from './utils/session';
-import api from './services/api';
+import apiService from './services/api';
 
 function App() {
   // State management
@@ -34,7 +34,7 @@ function App() {
       setSessionId(existingSessionId);
       
       // Set session ID in API headers
-      api.defaults.headers['x-session-id'] = existingSessionId;
+      apiService.defaults.headers['x-session-id'] = existingSessionId;
     };
 
     initSession();
@@ -47,7 +47,7 @@ function App() {
     
     try {
       // Upload image to backend
-      const uploadResponse = await api.uploadImage(imageFile, sessionId);
+      const uploadResponse = await apiService.uploadImage(imageFile, sessionId);
       
       if (uploadResponse.success) {
         setUploadedImage({
@@ -73,7 +73,7 @@ function App() {
     setIsLoading(true);
     
     try {
-      const analysisResponse = await api.analyzeImage(uploadId, sessionId);
+      const analysisResponse = await apiService.analyzeImage(uploadId, sessionId);
       
       if (analysisResponse.success) {
         setAnalysisResult(analysisResponse.result);
@@ -95,7 +95,7 @@ function App() {
     setIsLoading(true);
     
     try {
-      const reportResponse = await api.generateReport(analysisResult.analysisId, sessionId);
+      const reportResponse = await apiService.generateReport(analysisResult.analysisId, sessionId);
       
       if (reportResponse.success) {
         setCurrentStep('report');
