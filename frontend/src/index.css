@@ -4,7 +4,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-gray-200;
   }
   
   body {
@@ -20,7 +20,7 @@
 @layer components {
   /* Custom components */
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
   }
   
   .btn-secondary {
@@ -28,7 +28,7 @@
   }
   
   .btn-equine {
-    @apply bg-equine-600 hover:bg-equine-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-equine-500 focus:ring-offset-2;
+    @apply bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2;
   }
   
   .card {
@@ -36,7 +36,7 @@
   }
   
   .input-field {
-    @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500;
+    @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500;
   }
   
   .camera-preview {
@@ -44,7 +44,7 @@
   }
   
   .analysis-result {
-    @apply bg-gradient-to-r from-primary-50 to-equine-50 border border-primary-200 rounded-lg p-4;
+    @apply bg-gradient-to-r from-blue-50 to-amber-50 border border-blue-200 rounded-lg p-4;
   }
 }
 
@@ -55,7 +55,7 @@
   }
   
   .bg-gradient-equine {
-    background: linear-gradient(135deg, theme('colors.primary.600'), theme('colors.equine.600'));
+    background: linear-gradient(135deg, theme('colors.blue.600'), theme('colors.amber.600'));
   }
   
   .animation-delay-200 {
