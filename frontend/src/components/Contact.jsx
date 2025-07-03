@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Send, User, MessageCircle, Github, Linkedin } from 'lucide-react';
 
 const Contact = () => {
@@ -287,18 +288,18 @@ const Contact = () => {
             Join thousands of horse owners who trust Vealth for accurate age estimation.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="/"
+            <Link
+              to="/"
               className="bg-white text-teal-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-flex items-center justify-center"
             >
               Try Vealth Now
-            </a>
-            <a
-              href="/how-it-works"
+            </Link>
+            <Link
+              to="/how-it-works"
               className="border border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-teal-600 transition-colors inline-flex items-center justify-center"
             >
               Learn How It Works
-            </a>
+            </Link>
           </div>
         </div>
       </div>
