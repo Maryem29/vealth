@@ -51,28 +51,13 @@ function AppContent() {
     initSession();
   }, []);
 
-  // Handle smooth scrolling for anchor links
+  // Reset to upload step when navigating to home
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash;
-      if (hash) {
-        const element = document.querySelector(hash);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-      }
-    };
-
-    // Handle hash on initial load
-    handleHashChange();
-    
-    // Listen for hash changes
-    window.addEventListener('hashchange', handleHashChange);
-    
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-    };
-  }, [location]);
+    if (isHomePage) {
+      setCurrentStep('upload');
+      setError(null);
+    }
+  }, [isHomePage]);
 
   // Handle image upload/capture
   const handleImageUpload = async (imageFile, imageData) => {
