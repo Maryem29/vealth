@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Menu, X, Info } from 'lucide-react';
 
 const Header = () => {
@@ -8,8 +9,8 @@ const Header = () => {
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          {/* Logo and Brand */}
-          <div className="flex items-center space-x-3">
+          {/* Logo and Brand - Clickable to go home */}
+          <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
             <div className="w-12 h-12 flex items-center justify-center">
               <img 
                 src="/horse-logo.png" 
@@ -29,28 +30,28 @@ const Header = () => {
               <h1 className="text-xl font-bold text-gray-900">Vealth</h1>
               <p className="text-xs text-gray-500">AI Equine Health Assistant</p>
             </div>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <a
-              href="#how-it-works"
+            <Link
+              to="/how-it-works"
               className="text-gray-600 hover:text-teal-600 text-sm font-medium transition-colors"
             >
               How it Works
-            </a>
-            <a
-              href="#about"
+            </Link>
+            <Link
+              to="/about"
               className="text-gray-600 hover:text-teal-600 text-sm font-medium transition-colors"
             >
               About
-            </a>
-            <a
-              href="#contact"
+            </Link>
+            <Link
+              to="/contact"
               className="text-gray-600 hover:text-teal-600 text-sm font-medium transition-colors"
             >
               Contact
-            </a>
+            </Link>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -66,27 +67,27 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden mt-4 py-4 border-t border-gray-200">
             <nav className="flex flex-col space-y-3">
-              <a
-                href="#how-it-works"
+              <Link
+                to="/how-it-works"
                 className="text-gray-600 hover:text-teal-600 text-sm font-medium transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 How it Works
-              </a>
-              <a
-                href="#about"
+              </Link>
+              <Link
+                to="/about"
                 className="text-gray-600 hover:text-teal-600 text-sm font-medium transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 About
-              </a>
-              <a
-                href="#contact"
+              </Link>
+              <Link
+                to="/contact"
                 className="text-gray-600 hover:text-teal-600 text-sm font-medium transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Contact
-              </a>
+              </Link>
             </nav>
           </div>
         )}
