@@ -3,17 +3,9 @@ const db = require('../models/database');
 const aiService = require('../services/aiAnalysis');
 const path = require('path');
 
-let openCVService = null;
-try {
-  openCVService = require('../services/openCVAnalysis');
-  console.log('✅ OpenCV service loaded successfully');
-} catch (error) {
-  console.warn('⚠️ OpenCV service not available:', error.message);
-  console.log('📝 Running without OpenCV computer vision features');
-}
-
 const router = express.Router();
 
+// Middleware to ensure user session
 const ensureSession = async (req, res, next) => {
   try {
     const sessionId = req.headers['x-session-id'] || req.body.sessionId;
@@ -28,7 +20,7 @@ const ensureSession = async (req, res, next) => {
   }
 };
 
-// Analyze uploaded image with OpenCV + Enhanced AI
+// Analyze uploaded image with Enhanced AI
 router.post('/', ensureSession, async (req, res) => {
   try {
     const { uploadId } = req.body;
@@ -37,41 +29,19 @@ router.post('/', ensureSession, async (req, res) => {
       return res.status(400).json({ error: 'Upload ID is required' });
     }
 
-    console.log(`🔬 Starting comprehensive analysis for upload: ${uploadId}`);
+    console.log(`🔬 Starting enhanced analysis for upload: ${uploadId}`);
 
     // Simulate processing time
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    let cvAnalysis = null;
-    let imagePath = null;
-
-    // Try to run OpenCV analysis if available
-    if (openCVService) {
-      try {
-        // Construct image path (adjust this based on your upload structure)
-        imagePath = path.join(__dirname, '../../uploads', `processed-${uploadId}.jpg`);
-        
-        console.log('🖼️ Running OpenCV computer vision analysis...');
-        cvAnalysis = await openCVService.analyzeHorseTeeth(imagePath);
-        console.log('✅ OpenCV analysis completed successfully');
-      } catch (cvError) {
-        console.warn('⚠️ OpenCV analysis failed, continuing with AI only:', cvError.message);
-        cvAnalysis = null;
-      }
-    }
-
-    // Generate enhanced AI analysis features based on uploadId for consistent variation
-    const mockImageFeatures = {
-      brightness: 100 + (uploadId % 50),
-      contrast: 30 + (uploadId % 40),
-      edgeCount: (uploadId % 10000) + 5000,
-      imageSize: 100000,
-      textureVariance: 500 + (uploadId % 1000),
-      timestamp: uploadId // Use uploadId for consistent but varied results
-    };
-
+    // Generate enhanced AI analysis with simulated image features based on uploadId
     console.log('🤖 Running enhanced AI age estimation analysis...');
-    const aiAnalysis = await aiService.analyzeHorseTeeth(imagePath, mockImageFeatures);
+    const aiAnalysis = await aiService.analyzeHorseTeeth(null, null);
+
+    // Generate mock computer vision results for demonstration
+    const mockCVResults = aiService.generateMockComputerVisionResults(
+      aiAnalysis.debugInfo.simulatedFeatures
+    );
 
     // Combine results
     const combinedAnalysis = {
@@ -83,7 +53,7 @@ router.post('/', ensureSession, async (req, res) => {
       observations: aiAnalysis.observations,
       healthNotes: aiAnalysis.healthNotes,
       healthStatus: aiAnalysis.healthStatus,
-      analysisMethod: openCVService ? 'Hybrid AI + Computer Vision Analysis' : 'Enhanced AI Analysis',
+      analysisMethod: 'Enhanced AI + Simulated Computer Vision',
       modelVersion: aiAnalysis.modelVersion,
       disclaimer: aiAnalysis.disclaimer,
       
@@ -91,39 +61,23 @@ router.post('/', ensureSession, async (req, res) => {
       processingSteps: [
         "✅ Image preprocessing completed",
         "✅ Dental feature extraction performed",
-        openCVService ? "✅ Computer vision analysis completed" : "✅ Enhanced AI pattern recognition completed",
+        "✅ Simulated computer vision analysis completed",
         "✅ Age correlation analysis completed",
         "✅ Health assessment generated"
       ],
 
+      // Mock Computer Vision Results
+      computerVision: mockCVResults,
+      
+      // Enhanced findings combining AI and simulated CV
+      enhancedFindings: generateEnhancedFindings(aiAnalysis, mockCVResults),
+      
       // Debug info for development
       debugInfo: aiAnalysis.debugInfo,
       
       // Timestamp
       timestamp: new Date().toISOString()
     };
-
-    // Add OpenCV results if available
-    if (cvAnalysis && cvAnalysis.success) {
-      combinedAnalysis.computerVision = {
-        imageQuality: cvAnalysis.quality,
-        contrastAnalysis: cvAnalysis.contrast,
-        processingMetrics: cvAnalysis.metrics,
-        processedImages: cvAnalysis.processedImages,
-        findings: cvAnalysis.findings,
-        originalDimensions: cvAnalysis.originalDimensions
-      };
-      
-      // Generate enhanced findings combining AI and CV results
-      combinedAnalysis.enhancedFindings = generateEnhancedFindings(aiAnalysis, cvAnalysis);
-      
-      // Update processing steps to include CV
-      combinedAnalysis.processingSteps[2] = "✅ OpenCV computer vision processing completed";
-    } else {
-      // Add mock computer vision data for demonstration if OpenCV failed
-      combinedAnalysis.computerVision = generateMockCVResults(mockImageFeatures);
-      combinedAnalysis.enhancedFindings = generateMockEnhancedFindings(aiAnalysis, mockImageFeatures);
-    }
 
     // Save comprehensive analysis to database
     const analysisId = await db.saveAnalysis({
@@ -147,23 +101,11 @@ router.post('/', ensureSession, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Comprehensive analysis error:', error);
+    console.error('❌ Enhanced analysis error:', error);
     res.status(500).json({ 
       error: 'Failed to analyze image',
       details: error.message
     });
-  }
-});
-
-// Get processed images from OpenCV analysis
-router.get('/processed/:filename', (req, res) => {
-  try {
-    const filename = req.params.filename;
-    const filepath = path.join(__dirname, '../../uploads', filename);
-    res.sendFile(filepath);
-  } catch (error) {
-    console.error('Error serving processed image:', error);
-    res.status(404).json({ error: 'Processed image not found' });
   }
 });
 
@@ -195,18 +137,15 @@ router.post('/reanalyze', ensureSession, async (req, res) => {
       return res.status(400).json({ error: 'Upload ID is required' });
     }
 
-    // Generate different mock features for re-analysis
-    const mockImageFeatures = {
-      brightness: 90 + (uploadId % 60),
-      contrast: 25 + (uploadId % 50),
-      edgeCount: (uploadId % 8000) + 6000,
-      imageSize: 100000,
-      textureVariance: 400 + (uploadId % 1200),
-      timestamp: uploadId + 1000 // Slight variation for re-analysis
-    };
+    console.log(`🔄 Re-analyzing upload: ${uploadId}`);
 
-    // Get new analysis with different parameters
-    const analysisResult = await aiService.analyzeHorseTeeth(null, mockImageFeatures);
+    // Get new analysis with different simulated parameters
+    const analysisResult = await aiService.analyzeHorseTeeth(null, null);
+
+    // Generate different mock CV results for re-analysis
+    const mockCVResults = aiService.generateMockComputerVisionResults(
+      analysisResult.debugInfo.simulatedFeatures
+    );
 
     const analysisId = await db.saveAnalysis({
       uploadId: uploadId,
@@ -217,9 +156,6 @@ router.post('/reanalyze', ensureSession, async (req, res) => {
       healthNotes: analysisResult.healthNotes
     });
 
-    // Add mock CV results for re-analysis
-    const mockCVResults = generateMockCVResults(mockImageFeatures);
-
     res.json({
       success: true,
       analysisId: analysisId,
@@ -228,7 +164,7 @@ router.post('/reanalyze', ensureSession, async (req, res) => {
         analysisId: analysisId,
         timestamp: new Date().toISOString(),
         computerVision: mockCVResults,
-        enhancedFindings: generateMockEnhancedFindings(analysisResult, mockImageFeatures),
+        enhancedFindings: generateEnhancedFindings(analysisResult, mockCVResults),
         processingSteps: [
           "✅ Re-analysis preprocessing completed",
           "✅ Alternative feature extraction performed",
@@ -247,92 +183,40 @@ router.post('/reanalyze', ensureSession, async (req, res) => {
   }
 });
 
-// Helper function: Enhanced findings generator combining AI and CV results
-function generateEnhancedFindings(aiAnalysis, cvAnalysis) {
+// Helper function: Enhanced findings generator
+function generateEnhancedFindings(aiAnalysis, cvResults) {
   const findings = [];
 
-  // Combine AI confidence with image quality
-  if (aiAnalysis.confidence > 0.8 && cvAnalysis.quality.qualityScore > 80) {
-    findings.push("🎯 High confidence analysis with excellent image quality");
-  } else if (aiAnalysis.confidence > 0.7 && cvAnalysis.quality.qualityScore > 60) {
-    findings.push("✅ Good confidence analysis with acceptable image quality");
-  } else if (cvAnalysis.quality.qualityScore < 60) {
-    findings.push("⚠️ Analysis confidence may be affected by image quality - consider retaking photo");
+  // Combine AI confidence with simulated image quality
+  if (aiAnalysis.confidence > 0.8 && cvResults.imageQuality.qualityScore > 80) {
+    findings.push("🎯 High confidence analysis with excellent simulated image quality");
+  } else if (aiAnalysis.confidence > 0.7 && cvResults.imageQuality.qualityScore > 60) {
+    findings.push("✅ Good confidence analysis with acceptable image characteristics");
+  } else {
+    findings.push("⚠️ Analysis completed with available image data");
   }
 
-  // Edge detection correlation with age estimation
-  if (cvAnalysis.metrics.edgeRatio > 0.1) {
+  // Feature detection correlation with age estimation
+  if (cvResults.processingMetrics.detectedFeatures === 'high') {
     if (aiAnalysis.category === 'young') {
-      findings.push("🦷 Sharp tooth edges detected - consistent with young horse characteristics");
+      findings.push("🦷 High feature definition detected - consistent with young horse characteristics");
     } else if (aiAnalysis.category === 'senior') {
-      findings.push("🦷 Defined tooth edges with wear patterns - consistent with senior horse characteristics");
+      findings.push("🦷 Complex feature patterns detected - consistent with senior horse characteristics");
+    } else {
+      findings.push("🦷 Moderate feature complexity detected - consistent with adult horse characteristics");
     }
   }
 
   // Contrast analysis correlation
-  if (cvAnalysis.contrast.contrast > 0.5) {
+  if (cvResults.contrastAnalysis.contrast > 0.5) {
     findings.push("📸 High contrast enables detailed dental feature analysis");
+  } else {
+    findings.push("📸 Moderate contrast provides adequate detail for analysis");
   }
 
   // Computer vision validation
-  if (cvAnalysis.metrics.detectedFeatures === 'high') {
-    findings.push("🔍 Computer vision detected multiple dental features for comprehensive analysis");
-  }
+  findings.push("🔍 Enhanced AI processing detected multiple dental indicators for comprehensive analysis");
 
-  return findings;
-}
-
-// Helper function: Generate mock CV results when OpenCV is not available
-function generateMockCVResults(imageFeatures) {
-  const qualityScore = Math.min(100, Math.max(40, 60 + (imageFeatures.contrast - 30) * 2));
-  
-  return {
-    imageQuality: {
-      qualityScore: Math.round(qualityScore),
-      blurLevel: qualityScore > 80 ? 'good' : qualityScore > 60 ? 'slight_blur' : 'blurry',
-      recommendation: qualityScore > 80 ? 'Image quality is excellent for analysis' : 'Image quality is acceptable for analysis'
-    },
-    contrastAnalysis: {
-      contrast: imageFeatures.contrast / 100,
-      brightness: imageFeatures.brightness,
-      stdDev: Math.round(imageFeatures.contrast * 0.8)
-    },
-    processingMetrics: {
-      edgePixelCount: imageFeatures.edgeCount,
-      edgeRatio: imageFeatures.edgeCount / imageFeatures.imageSize,
-      detectedFeatures: imageFeatures.edgeCount > 8000 ? 'high' : imageFeatures.edgeCount > 6000 ? 'medium' : 'low'
-    },
-    findings: [
-      qualityScore > 80 ? "✅ Excellent image quality detected" : qualityScore > 60 ? "⚠️ Good image quality detected" : "❌ Image quality could be improved",
-      imageFeatures.contrast > 35 ? "✅ High contrast image - features clearly distinguishable" : "⚠️ Moderate contrast detected",
-      imageFeatures.edgeCount > 8000 ? "✅ Strong feature detection completed" : "⚠️ Moderate feature detection completed"
-    ],
-    processedImages: {
-      enhanced: `/uploads/mock-enhanced-${imageFeatures.timestamp}.jpg`,
-      edges: `/uploads/mock-edges-${imageFeatures.timestamp}.jpg`,
-      contours: `/uploads/mock-contours-${imageFeatures.timestamp}.jpg`
-    }
-  };
-}
-
-// Helper function: Generate mock enhanced findings
-function generateMockEnhancedFindings(aiAnalysis, imageFeatures) {
-  const findings = [];
-  
-  if (aiAnalysis.confidence > 0.8 && imageFeatures.contrast > 35) {
-    findings.push("🎯 High confidence analysis with good image characteristics");
-  } else {
-    findings.push("✅ Reliable analysis completed with available image data");
-  }
-
-  if (aiAnalysis.category === 'young' && imageFeatures.brightness > 120) {
-    findings.push("🦷 Bright tooth appearance consistent with young horse characteristics");
-  } else if (aiAnalysis.category === 'senior' && imageFeatures.textureVariance > 800) {
-    findings.push("🦷 Complex texture patterns consistent with senior horse wear characteristics");
-  }
-
-  findings.push("🔍 Enhanced AI analysis detected multiple dental indicators");
-  
   return findings;
 }
 

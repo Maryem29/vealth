@@ -1,5 +1,3 @@
-const cv = require('opencv4nodejs');
-
 class EnhancedAIAnalysisService {
   constructor() {
     console.log('🤖 Enhanced AI Analysis Service initialized (OpenCV-Free)');
