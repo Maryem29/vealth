@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Camera, Upload, History, Settings, Heart } from 'lucide-react';
 
-// Import components
 import Header from './components/Header.jsx';
 import CameraCapture from './components/CameraCapture.jsx';
 import ImageUpload from './components/ImageUpload.jsx';
@@ -13,7 +12,6 @@ import HowItWorks from './components/HowItWorks.jsx';
 import About from './components/About.jsx';
 import Contact from './components/Contact.jsx';
 
-// Import services
 import { generateSessionId, getSessionId } from './utils/session';
 import apiService from './services/api';
 

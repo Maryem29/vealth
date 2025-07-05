@@ -28,22 +28,22 @@ const Contact = () => {
 
   const teamMembers = [
     {
-      name: "Sarah Johnson",
-      role: "Lead Developer & AI Specialist",
+      name: "Kseniia Vinogradova",
+      role: "Backend Developer & AI Developer",
       bio: "Computer Science graduate with expertise in machine learning and veterinary technology. Passionate about using AI to improve animal welfare.",
-      email: "sarah.johnson@vealth.ai",
-      github: "sarahjohnson",
-      linkedin: "sarah-johnson-ai",
-      avatar: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjMTQ5OTg5Ii8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNDAiIHI9IjE1IiBmaWxsPSIjRkZGRkZGIi8+CjxwYXRoIGQ9Ik0yNSA3NUMyNSA2NS4zNCAzNC4zNCA1NiA0NCA1NkgxNkM2NS42NiA1NiA3NSA2NS4zNCA3NSA3NVY4NUgyNVY3NVoiIGZpbGw9IiNGRkZGRkYiLz4KPC9zdmc+Cg=="
+      email: "kseniia.vinogradova@stud.th-deg.de",
+      github: "kseniiavi",
+      linkedin: "kseniia-vinogradova-900468302",
+      avatar: "/kseniia.png"
     },
     {
-      name: "Michael Chen",
-      role: "Full-Stack Developer & UX Designer",
+      name: "Maryem Mohamed",
+      role: "Full-Stack Developer & Product Manager",
       bio: "Software engineering student specializing in web development and user experience design. Focused on creating intuitive interfaces for complex technologies.",
-      email: "michael.chen@vealth.ai",
-      github: "michaelchen",
-      linkedin: "michael-chen-dev",
-      avatar: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjMzk4MUY2Ii8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNDAiIHI9IjE1IiBmaWxsPSIjRkZGRkZGIi8+CjxwYXRoIGQ9Ik0yNSA3NUMyNSA2NS4zNCAzNC4zNCA1NiA0NCA1NkgxNkM2NS42NiA1NiA3NSA2NS4zNCA3NSA3NVY4NUgyNVY3NVoiIGZpbGw9IiNGRkZGRkYiLz4KPC9zdmc+Cg=="
+      email: "maryem.abdellah@stud.th-deg.de",
+      github: "Maryem29",
+      linkedin: "maryemabdellah29",
+      avatar: "maryem.jpeg"
     }
   ];
 
@@ -51,7 +51,7 @@ const Contact = () => {
     {
       icon: <Mail className="w-5 h-5" />,
       title: "Email",
-      details: "support@vealth.ai",
+      details: "vealth@gmail.com",
       link: "mailto:support@vealth.ai"
     },
     {
