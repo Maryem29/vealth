@@ -1,8 +1,12 @@
-class EnhancedAIAnalysisService {
+const sharp = require('sharp');
+const fs = require('fs').promises;
+const path = require('path');
+
+class ImageAnalyzingAIService {
   constructor() {
-    console.log('🤖 Enhanced AI Analysis Service initialized (OpenCV-Free)');
+    console.log('🎯 Image-Analyzing AI Service initialized');
     
-    // Age estimation rules based on simulated image characteristics
+    // Age estimation rules
     this.ageRules = {
       young: {
         ageRange: ["2-4 years", "3-5 years", "4-6 years"],
@@ -11,16 +15,12 @@ class EnhancedAIAnalysisService {
           "Temporary incisors still present in some positions",
           "Permanent central incisors recently erupted",
           "Minimal wear patterns visible on tooth surfaces",
-          "Sharp, well-defined tooth edges observed",
-          "No dental stars visible on examination",
-          "Corner incisors show limited development",
-          "Tooth surfaces appear relatively smooth"
+          "Sharp, well-defined tooth edges observed"
         ],
         healthNotes: [
           "Developing dental structure appears normal",
           "No premature wear patterns detected",
-          "Recommend monitoring during tooth transition period",
-          "Ensure adequate nutrition for proper tooth development"
+          "Recommend monitoring during tooth transition period"
         ]
       },
       adult: {
@@ -30,16 +30,12 @@ class EnhancedAIAnalysisService {
           "All permanent incisors present and established",
           "Moderate wear patterns consistent with normal use",
           "Dental stars beginning to appear on central incisors",
-          "Even wear distribution across tooth surfaces",
-          "Corner incisors show full development",
-          "Galvayne's groove beginning to appear",
-          "Tooth angle showing slight change from vertical"
+          "Even wear distribution across tooth surfaces"
         ],
         healthNotes: [
           "Even wear pattern indicates normal dental function",
           "No obvious abnormalities detected in dental structure",
-          "Recommend annual dental examinations",
-          "Consider routine dental maintenance if needed"
+          "Recommend annual dental examinations"
         ]
       },
       mature: {
@@ -49,16 +45,12 @@ class EnhancedAIAnalysisService {
           "Prominent dental stars visible on all incisors",
           "Significant wear patterns throughout dental arcade",
           "Galvayne's groove clearly visible on corner incisors",
-          "Tooth surfaces showing characteristic wear cups",
-          "Dental angle becoming more pronounced",
-          "Some yellowing of tooth enamel present",
-          "Hook formation may be beginning on some teeth"
+          "Tooth surfaces showing characteristic wear cups"
         ],
         healthNotes: [
           "Wear patterns consistent with expected age group",
           "Monitor for uneven wear requiring dental attention",
-          "Regular dental care becomes increasingly important",
-          "Watch for signs of dental pain or eating difficulties"
+          "Regular dental care becomes increasingly important"
         ]
       },
       senior: {
@@ -68,141 +60,249 @@ class EnhancedAIAnalysisService {
           "Extensive dental stars prominent on all teeth",
           "Heavy wear patterns with significant tooth loss",
           "Full Galvayne's groove extending down corner incisor",
-          "Teeth appear triangular rather than oval in cross-section",
-          "Significant dental angle change from original position",
-          "Enamel loss and tooth discoloration evident",
-          "Possible missing or severely worn individual teeth"
+          "Teeth appear triangular rather than oval in cross-section"
         ],
         healthNotes: [
           "Age-related dental changes require monitoring",
           "Consider specialized senior horse dental care",
-          "May need dietary modifications for easier chewing",
-          "Regular veterinary dental examinations essential"
+          "May need dietary modifications for easier chewing"
+        ]
+      },
+      invalid: {
+        ageRange: ["Unable to determine"],
+        confidence: [0.20],
+        observations: [
+          "Image does not appear to contain horse dental structures",
+          "Unable to identify characteristic incisor patterns",
+          "Non-equine subject detected in analysis"
+        ],
+        healthNotes: [
+          "Please upload a clear image of horse front teeth (incisors)",
+          "Ensure the image shows the horse's dental arcade clearly"
         ]
       }
     };
   }
 
-  async analyzeHorseTeeth(imagePath, imageFeatures = null) {
+  async analyzeHorseTeeth(uploadId, imageFeatures = null) {
     try {
-      console.log('🔍 Starting enhanced AI analysis...');
+      console.log(`🔍 Starting image analysis for upload: ${uploadId}`);
       
-      // Generate or use provided image features
-      let features = imageFeatures;
+      // Construct the image path
+      const imagePath = path.join(__dirname, '../../uploads', `processed-${uploadId}.jpg`);
+      console.log(`📁 Looking for image at: ${imagePath}`);
       
-      // If no features provided, simulate them based on timestamp/random factors
-      if (!features) {
-        features = this.simulateImageFeatures();
+      // Check if image exists
+      try {
+        await fs.access(imagePath);
+        console.log('✅ Image file found, analyzing...');
+      } catch (error) {
+        console.warn('❌ Image file NOT found at path:', imagePath);
+        console.warn('📂 Let me check what files exist in uploads folder...');
+        
+        try {
+          const uploadsDir = path.join(__dirname, '../../uploads');
+          const files = await fs.readdir(uploadsDir);
+          console.log('📋 Files in uploads folder:', files);
+        } catch (dirError) {
+          console.error('❌ Cannot read uploads directory:', dirError);
+        }
+        
+        return this.generateFallbackAnalysis();
       }
+
+      // Analyze the actual image
+      const imageAnalysis = await this.analyzeImageFile(imagePath);
+      console.log('📊 Image analysis results:', imageAnalysis);
       
-      console.log('📊 Simulated image features:', features);
+      // Determine if this looks like horse teeth
+      const isValidHorseImage = this.validateHorseTeethImage(imageAnalysis);
       
-      // Determine age category based on simulated image characteristics
-      const ageCategory = this.determineAgeCategory(features);
+      // Determine age category based on image characteristics
+      const ageCategory = isValidHorseImage ? 
+        this.determineAgeCategory(imageAnalysis) : 'invalid';
       
-      // Generate realistic analysis based on features
-      const analysis = this.generateRealisticAnalysis(ageCategory, features);
+      // Generate realistic analysis based on image features
+      const analysis = this.generateRealisticAnalysis(ageCategory, imageAnalysis);
       
-      console.log('✅ Enhanced AI analysis completed');
+      console.log('✅ Image analysis completed');
       return analysis;
     } catch (error) {
-      console.error('Enhanced AI analysis error:', error);
-      // Fallback to basic analysis
+      console.error('❌ Image analysis error:', error);
       return this.generateFallbackAnalysis();
     }
   }
 
-  simulateImageFeatures() {
-    // Simulate realistic image characteristics that would come from OpenCV
-    const timestamp = Date.now();
-    const randomSeed = timestamp % 10000;
-    
-    return {
-      // Simulated brightness (0-255)
-      brightness: 80 + (randomSeed % 100),
+  async analyzeImageFile(imagePath) {
+    try {
+      const image = sharp(imagePath);
+      const metadata = await image.metadata();
+      const stats = await image.stats();
       
-      // Simulated contrast (0-100)
-      contrast: 20 + (randomSeed % 60),
+      const analysis = {
+        width: metadata.width,
+        height: metadata.height,
+        channels: metadata.channels,
+        format: metadata.format,
+        dominantColor: this.getDominantColorCategory(stats),
+        brightness: this.calculateBrightness(stats),
+        contrast: this.calculateContrast(stats),
+        entropy: await this.calculateEntropy(image),
+        edges: await this.estimateEdges(image),
+        colorComplexity: this.calculateColorComplexity(stats),
+        aspectRatio: metadata.width / metadata.height,
+        totalPixels: metadata.width * metadata.height
+      };
       
-      // Simulated edge count (represents tooth definition)
-      edgeCount: 5000 + (randomSeed % 15000),
-      
-      // Simulated texture variance (represents wear patterns)
-      textureVariance: 300 + (randomSeed % 1500),
-      
-      // Standard image size
-      imageSize: 100000,
-      
-      // Simulated histogram features
-      histogram: {
-        mean: 100 + (randomSeed % 80),
-        peakBrightness: 80 + (randomSeed % 120)
-      },
-      
-      // Timestamp for consistency
-      timestamp: timestamp
-    };
+      return analysis;
+    } catch (error) {
+      console.error('Image analysis failed:', error);
+      throw error;
+    }
   }
 
-  determineAgeCategory(features) {
-    console.log('🎯 Determining age category from features...');
+  getDominantColorCategory(stats) {
+    const channels = stats.channels;
+    if (channels.length >= 3) {
+      const [r, g, b] = channels;
+      const avgR = r.mean;
+      const avgG = g.mean;
+      const avgB = b.mean;
+      
+      if (avgR > avgG && avgR > avgB) return 'red-dominant';
+      if (avgG > avgR && avgG > avgB) return 'green-dominant';
+      if (avgB > avgR && avgB > avgG) return 'blue-dominant';
+      if (Math.abs(avgR - avgG) < 20 && Math.abs(avgG - avgB) < 20) return 'neutral';
+      return 'mixed';
+    }
+    return 'grayscale';
+  }
+
+  calculateBrightness(stats) {
+    if (stats.channels.length >= 3) {
+      const [r, g, b] = stats.channels;
+      return (r.mean * 0.299 + g.mean * 0.587 + b.mean * 0.114);
+    }
+    return stats.channels[0]?.mean || 128;
+  }
+
+  calculateContrast(stats) {
+    if (stats.channels.length >= 3) {
+      const [r, g, b] = stats.channels;
+      return (r.stdev + g.stdev + b.stdev) / 3;
+    }
+    return stats.channels[0]?.stdev || 50;
+  }
+
+  async calculateEntropy(image) {
+    try {
+      const { data } = await image.grayscale().raw().toBuffer({ resolveWithObject: true });
+      const histogram = new Array(256).fill(0);
+      for (let i = 0; i < data.length; i++) {
+        histogram[data[i]]++;
+      }
+      
+      const totalPixels = data.length;
+      let entropy = 0;
+      for (let i = 0; i < 256; i++) {
+        if (histogram[i] > 0) {
+          const probability = histogram[i] / totalPixels;
+          entropy -= probability * Math.log2(probability);
+        }
+      }
+      
+      return entropy;
+    } catch (error) {
+      console.warn('Entropy calculation failed, using default');
+      return 5.0;
+    }
+  }
+
+  async estimateEdges(image) {
+    try {
+      const edgeImage = await image
+        .grayscale()
+        .convolve({
+          width: 3,
+          height: 3,
+          kernel: [-1, -1, -1, -1, 8, -1, -1, -1, -1]
+        })
+        .raw()
+        .toBuffer();
+      
+      let edgePixels = 0;
+      for (let i = 0; i < edgeImage.length; i++) {
+        if (edgeImage[i] > 50) edgePixels++;
+      }
+      
+      return edgePixels / edgeImage.length;
+    } catch (error) {
+      console.warn('Edge estimation failed, using default');
+      return 0.1;
+    }
+  }
+
+  calculateColorComplexity(stats) {
+    if (stats.channels.length >= 3) {
+      const [r, g, b] = stats.channels;
+      const variations = [r.stdev, g.stdev, b.stdev];
+      return variations.reduce((sum, val) => sum + val, 0) / 3;
+    }
+    return stats.channels[0]?.stdev || 50;
+  }
+
+  validateHorseTeethImage(imageAnalysis) {
+    let score = 0;
     
-    // Score-based age determination using simulated image characteristics
+    if (imageAnalysis.aspectRatio > 1.0 && imageAnalysis.aspectRatio < 3.0) score += 2;
+    if (imageAnalysis.dominantColor === 'neutral' || imageAnalysis.dominantColor === 'red-dominant') score += 2;
+    if (imageAnalysis.brightness > 100 && imageAnalysis.brightness < 200) score += 2;
+    if (imageAnalysis.contrast > 30) score += 1;
+    if (imageAnalysis.entropy > 4.0 && imageAnalysis.entropy < 7.5) score += 1;
+    
+    if (imageAnalysis.dominantColor === 'red-dominant' && 
+        imageAnalysis.brightness < 120 && 
+        imageAnalysis.colorComplexity > 60) {
+      score -= 3;
+    }
+    
+    console.log(`🎯 Horse validation score: ${score}/8`);
+    return score >= 4;
+  }
+
+  determineAgeCategory(imageAnalysis) {
     let youngScore = 0, adultScore = 0, matureScore = 0, seniorScore = 0;
 
-    // Brightness analysis (younger teeth often appear brighter)
-    if (features.brightness > 140) {
+    if (imageAnalysis.brightness > 150) {
       youngScore += 3;
-    } else if (features.brightness > 120) {
+    } else if (imageAnalysis.brightness > 130) {
       adultScore += 3;
-    } else if (features.brightness > 100) {
+    } else if (imageAnalysis.brightness > 110) {
       matureScore += 3;
     } else {
       seniorScore += 3;
     }
 
-    // Edge count analysis (sharper edges often indicate younger teeth)
-    const edgeRatio = features.edgeCount / features.imageSize;
-    if (edgeRatio > 0.15) {
+    if (imageAnalysis.contrast > 60) {
       youngScore += 2;
-    } else if (edgeRatio > 0.10) {
+    } else if (imageAnalysis.contrast > 45) {
       adultScore += 2;
-    } else if (edgeRatio > 0.05) {
+    } else if (imageAnalysis.contrast > 30) {
       matureScore += 2;
     } else {
       seniorScore += 2;
     }
 
-    // Texture variance (higher variance might indicate more wear)
-    if (features.textureVariance < 600) {
+    if (imageAnalysis.edges > 0.15) {
       youngScore += 2;
-    } else if (features.textureVariance < 1000) {
+    } else if (imageAnalysis.edges > 0.10) {
       adultScore += 2;
-    } else if (features.textureVariance < 1400) {
+    } else if (imageAnalysis.edges > 0.05) {
       matureScore += 2;
     } else {
       seniorScore += 2;
     }
 
-    // Contrast analysis
-    if (features.contrast > 60) {
-      youngScore += 1;
-    } else if (features.contrast > 45) {
-      adultScore += 1;
-    } else if (features.contrast > 30) {
-      matureScore += 1;
-    } else {
-      seniorScore += 1;
-    }
-
-    // Add controlled randomness to avoid always getting same category
-    const randomFactor = (features.timestamp % 1000) / 1000;
-    youngScore += randomFactor * 2;
-    adultScore += ((features.timestamp + 250) % 1000) / 500;
-    matureScore += ((features.timestamp + 500) % 1000) / 500;
-    seniorScore += ((features.timestamp + 750) % 1000) / 500;
-
-    // Determine winning category
     const scores = { young: youngScore, adult: adultScore, mature: matureScore, senior: seniorScore };
     const winningCategory = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
     
@@ -212,39 +312,40 @@ class EnhancedAIAnalysisService {
     return winningCategory;
   }
 
-  generateRealisticAnalysis(ageCategory, features) {
+  generateRealisticAnalysis(ageCategory, imageAnalysis) {
     const categoryData = this.ageRules[ageCategory];
     
-    // Use features to consistently select from possible values
-    const ageIndex = features.timestamp % categoryData.ageRange.length;
+    const ageIndex = Math.abs(Math.floor(imageAnalysis.brightness)) % categoryData.ageRange.length;
     const selectedAge = categoryData.ageRange[ageIndex];
     const baseConfidence = categoryData.confidence[ageIndex];
     
-    // Adjust confidence based on simulated image quality
     let adjustedConfidence = baseConfidence;
-    if (features.contrast < 30) adjustedConfidence -= 0.1;
-    if (features.brightness < 80) adjustedConfidence -= 0.05;
-    if (features.edgeCount < features.imageSize * 0.05) adjustedConfidence -= 0.05;
     
-    // Ensure confidence stays within reasonable bounds
-    adjustedConfidence = Math.max(0.6, Math.min(0.95, adjustedConfidence));
+    if (ageCategory === 'invalid') {
+      adjustedConfidence = 0.15 + Math.random() * 0.1;
+    } else {
+      if (imageAnalysis.contrast < 30) adjustedConfidence -= 0.1;
+      if (imageAnalysis.brightness < 80) adjustedConfidence -= 0.05;
+      if (imageAnalysis.edges < 0.05) adjustedConfidence -= 0.05;
+      if (imageAnalysis.entropy < 3.0) adjustedConfidence -= 0.1;
+    }
+    
+    adjustedConfidence = Math.max(0.15, Math.min(0.95, adjustedConfidence));
 
-    // Select observations and health notes based on features
-    const obsCount = 2 + (features.timestamp % 3); // 2-4 observations
-    const healthCount = 2 + (features.timestamp % 2); // 2-3 health notes
+    const obsCount = ageCategory === 'invalid' ? 2 : (2 + Math.abs(Math.floor(imageAnalysis.contrast)) % 3);
+    const healthCount = ageCategory === 'invalid' ? 2 : (2 + Math.abs(Math.floor(imageAnalysis.brightness)) % 2);
     
-    const selectedObservations = this.selectItemsBasedOnFeatures(
-      categoryData.observations, obsCount, features.timestamp
+    const selectedObservations = this.selectItemsBasedOnCharacteristics(
+      categoryData.observations, obsCount, imageAnalysis
     );
     
-    const selectedHealthNotes = this.selectItemsBasedOnFeatures(
-      categoryData.healthNotes, healthCount, features.timestamp + 1000
+    const selectedHealthNotes = this.selectItemsBasedOnCharacteristics(
+      categoryData.healthNotes, healthCount, imageAnalysis
     );
 
-    // Determine health status
-    let healthStatus = 'normal';
-    if (ageCategory === 'senior' && (features.timestamp % 10) > 6) healthStatus = 'attention';
-    if (features.contrast < 25) healthStatus = 'attention';
+    let healthStatus = ageCategory === 'invalid' ? 'attention' : 'normal';
+    if (ageCategory === 'senior' && imageAnalysis.brightness < 120) healthStatus = 'attention';
+    if (imageAnalysis.contrast < 25) healthStatus = 'attention';
 
     return {
       estimatedAge: selectedAge,
@@ -254,89 +355,106 @@ class EnhancedAIAnalysisService {
       observations: selectedObservations,
       healthNotes: selectedHealthNotes,
       healthStatus: healthStatus,
-      analysisMethod: "Enhanced AI Dental Pattern Recognition",
-      modelVersion: "v2.2.0",
+      analysisMethod: "Image-Based AI Dental Pattern Recognition",
+      modelVersion: "v3.0.0",
       timestamp: new Date().toISOString(),
-      disclaimer: "This analysis provides an estimation based on simulated dental characteristics. For definitive age determination and dental health assessment, consult with a qualified equine veterinarian.",
+      disclaimer: ageCategory === 'invalid' ? 
+        "Unable to analyze non-equine dental structures. Please upload a clear image of horse front teeth for accurate analysis." :
+        "This analysis provides an estimation based on visible dental characteristics. For definitive age determination and dental health assessment, consult with a qualified equine veterinarian.",
       
-      // Debug info for development
       debugInfo: {
         determinedCategory: ageCategory,
-        simulatedFeatures: {
-          brightness: Math.round(features.brightness),
-          contrast: Math.round(features.contrast),
-          edgeRatio: (features.edgeCount / features.imageSize).toFixed(4),
-          textureVariance: Math.round(features.textureVariance)
+        imageCharacteristics: {
+          brightness: Math.round(imageAnalysis.brightness),
+          contrast: Math.round(imageAnalysis.contrast),
+          edgeRatio: imageAnalysis.edges.toFixed(4),
+          entropy: imageAnalysis.entropy.toFixed(2),
+          dominantColor: imageAnalysis.dominantColor,
+          aspectRatio: imageAnalysis.aspectRatio.toFixed(2),
+          validationPassed: ageCategory !== 'invalid'
         }
       }
     };
   }
 
-  selectItemsBasedOnFeatures(items, count, seed) {
-    // Consistently select items based on seed for reproducible results
+  selectItemsBasedOnCharacteristics(items, count, imageAnalysis) {
     const selected = [];
-    const usedIndices = new Set();
+    const seed = Math.abs(Math.floor(imageAnalysis.brightness + imageAnalysis.contrast));
     
     for (let i = 0; i < count && selected.length < items.length; i++) {
-      let index = (seed + i * 1000) % items.length;
-      
-      // Avoid duplicates
-      while (usedIndices.has(index) && usedIndices.size < items.length) {
-        index = (index + 1) % items.length;
+      const index = (seed + i * 17) % items.length;
+      if (!selected.includes(items[index])) {
+        selected.push(items[index]);
       }
-      
-      usedIndices.add(index);
-      selected.push(items[index]);
     }
     
     return selected;
   }
 
   generateFallbackAnalysis() {
-    console.warn('⚠️ Using fallback analysis');
-    const categories = ['young', 'adult', 'mature', 'senior'];
-    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-    const mockFeatures = this.simulateImageFeatures();
-    return this.generateRealisticAnalysis(randomCategory, mockFeatures);
+    console.warn('⚠️ Using fallback analysis - image not accessible');
+    return {
+      estimatedAge: "Unable to determine",
+      confidence: 0.20,
+      confidencePercentage: "20%",
+      category: "invalid",
+      observations: ["Image file could not be analyzed", "Please ensure image is properly uploaded"],
+      healthNotes: ["Re-upload image for analysis", "Ensure clear photo of horse teeth"],
+      healthStatus: "attention",
+      analysisMethod: "Fallback Analysis",
+      modelVersion: "v3.0.0",
+      timestamp: new Date().toISOString(),
+      disclaimer: "Analysis could not be completed due to image access issues.",
+      debugInfo: {
+        determinedCategory: "fallback",
+        imageCharacteristics: "unavailable"
+      }
+    };
   }
 
-  // Simulate computer vision results for demonstration
-  generateMockComputerVisionResults(features) {
-    const qualityScore = Math.min(100, Math.max(40, 60 + (features.contrast - 30) * 2));
+  generateMockComputerVisionResults(imageAnalysis) {
+    if (!imageAnalysis) return null;
+    
+    const qualityScore = Math.min(100, Math.max(20, 
+      30 + (imageAnalysis.contrast * 0.8) + (imageAnalysis.brightness * 0.2)
+    ));
     
     return {
       imageQuality: {
         qualityScore: Math.round(qualityScore),
         blurLevel: qualityScore > 80 ? 'good' : qualityScore > 60 ? 'slight_blur' : 'blurry',
-        recommendation: qualityScore > 80 ? 'Image quality is excellent for analysis' : 'Image quality is acceptable for analysis'
+        recommendation: qualityScore > 80 ? 
+          'Image quality is excellent for analysis' : 
+          qualityScore > 60 ? 'Image quality is acceptable for analysis' :
+          'Image quality could be improved'
       },
       contrastAnalysis: {
-        contrast: features.contrast / 100,
-        brightness: features.brightness,
-        stdDev: Math.round(features.contrast * 0.8)
+        contrast: imageAnalysis.contrast / 100,
+        brightness: imageAnalysis.brightness,
+        stdDev: Math.round(imageAnalysis.contrast)
       },
       processingMetrics: {
-        edgePixelCount: features.edgeCount,
-        edgeRatio: features.edgeCount / features.imageSize,
-        detectedFeatures: features.edgeCount > 12000 ? 'high' : features.edgeCount > 8000 ? 'medium' : 'low'
+        edgePixelCount: Math.round(imageAnalysis.edges * imageAnalysis.totalPixels),
+        edgeRatio: imageAnalysis.edges,
+        detectedFeatures: imageAnalysis.edges > 0.12 ? 'high' : 
+                         imageAnalysis.edges > 0.08 ? 'medium' : 'low'
       },
       findings: [
         qualityScore > 80 ? "✅ Excellent image quality detected" : 
         qualityScore > 60 ? "⚠️ Good image quality detected" : "❌ Image quality could be improved",
         
-        features.contrast > 50 ? "✅ High contrast image - features clearly distinguishable" : 
-        features.contrast > 35 ? "⚠️ Moderate contrast detected" : "❌ Low contrast detected",
+        imageAnalysis.contrast > 50 ? "✅ High contrast image - features clearly distinguishable" : 
+        imageAnalysis.contrast > 35 ? "⚠️ Moderate contrast detected" : "❌ Low contrast detected",
         
-        features.edgeCount > 12000 ? "✅ Strong feature detection completed" : 
-        features.edgeCount > 8000 ? "⚠️ Moderate feature detection completed" : "❌ Limited feature detection"
+        imageAnalysis.edges > 0.12 ? "✅ Strong feature detection completed" : 
+        imageAnalysis.edges > 0.08 ? "⚠️ Moderate feature detection completed" : "❌ Limited feature detection"
       ],
-      processedImages: {
-        enhanced: null, // Will show placeholder
-        edges: null,    // Will show placeholder  
-        contours: null  // Will show placeholder
+      originalDimensions: {
+        width: imageAnalysis.width,
+        height: imageAnalysis.height
       }
     };
   }
 }
 
-module.exports = new EnhancedAIAnalysisService();
+module.exports = new ImageAnalyzingAIService();

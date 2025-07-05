@@ -73,8 +73,17 @@ router.post('/', ensureSession, upload.single('image'), async (req, res) => {
 
     const { filename, originalname, size, mimetype, path: filePath } = req.file;
     
-    // Process image with Sharp (resize, optimize)
-    const processedImagePath = path.join(path.dirname(filePath), `processed-${filename}`);
+    console.log('📁 File uploaded:', filename);
+    console.log('📍 File path:', filePath);
+    
+    // Generate unique upload ID
+    const uploadId = Date.now();
+    
+    // Process image with Sharp and save with predictable name for analysis
+    const processedFileName = `processed-${uploadId}.jpg`;
+    const processedImagePath = path.join(path.dirname(filePath), processedFileName);
+    
+    console.log('🔄 Processing image to:', processedImagePath);
     
     await sharp(filePath)
       .resize(800, 600, { 
@@ -84,10 +93,12 @@ router.post('/', ensureSession, upload.single('image'), async (req, res) => {
       .jpeg({ quality: 85 })
       .toFile(processedImagePath);
 
+    console.log('✅ Image processed successfully');
+
     // Save upload info to database
-    const uploadId = await db.saveUpload({
+    const uploadDbId = await db.saveUpload({
       sessionId: req.sessionId,
-      filename: `processed-${filename}`,
+      filename: processedFileName,
       originalName: originalname,
       filePath: processedImagePath,
       fileSize: size,
@@ -97,23 +108,25 @@ router.post('/', ensureSession, upload.single('image'), async (req, res) => {
     // Get file stats for the processed image
     const stats = await fs.stat(processedImagePath);
 
+    console.log('💾 Upload saved to database with ID:', uploadDbId);
+
     res.json({
       success: true,
       sessionId: req.sessionId,
-      uploadId: uploadId,
+      uploadId: uploadId, // This is what the analysis route will use
       file: {
-        id: uploadId,
-        filename: `processed-${filename}`,
+        id: uploadDbId,
+        filename: processedFileName,
         originalname: originalname,
         size: stats.size,
-        url: `/uploads/processed-${filename}`,
+        url: `/uploads/${processedFileName}`,
         uploadedAt: new Date().toISOString()
       },
       message: 'Image uploaded and processed successfully'
     });
 
   } catch (error) {
-    console.error('Upload error:', error);
+    console.error('❌ Upload error:', error);
     res.status(500).json({ 
       error: 'Failed to upload image',
       details: error.message
@@ -139,10 +152,10 @@ router.get('/history', ensureSession, async (req, res) => {
 router.get('/:uploadId', ensureSession, async (req, res) => {
   try {
     const { uploadId } = req.params;
-    // Add database query for specific upload
     res.json({
       success: true,
-      message: 'Upload details endpoint ready'
+      message: 'Upload details endpoint ready',
+      uploadId: uploadId
     });
   } catch (error) {
     console.error('Upload fetch error:', error);
