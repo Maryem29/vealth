@@ -30,7 +30,8 @@ class OpenCVAnalysisService {
         this.enhanceImage(originalImage),
         this.detectEdges(originalImage),
         this.analyzeContrast(originalImage),
-        this.detectTeethContours(originalImage),
+        this.detectTeethWithCascade(originalImage),
+        /**this.detectTeethContours(originalImage),*/
         this.assessImageQuality(originalImage)
       ]);
 
@@ -153,10 +154,71 @@ class OpenCVAnalysisService {
     }
   }
 
+
+
+/**
+ * Detect teeth using Haar Cascade classifier
+ */
+async detectTeethWithCascade(image) {
+  try {
+    // Load your teeth cascade classifier
+    const teethCascade = new cv.CascadeClassifier();
+    await teethCascade.load('Model/data/result/cascade.xml'); // Update with your actual path
+    
+    // Convert to grayscale (required for Haar cascades)
+    const gray = image.cvtColor(cv.COLOR_BGR2GRAY);
+    
+    // Equalize histogram to improve contrast
+    const equalized = gray.equalizeHist();
+    
+    // Detect teeth using the cascade
+    const teeth = teethCascade.detectMultiScale(
+      equalized,
+      new cv.RectVector(),
+      1.1,  // scaleFactor (adjust as needed)
+      5,    // minNeighbors (adjust as needed)
+      0,    // flags (usually 0)
+      new cv.Size(10, 10), // minSize (minimum tooth size)
+      new cv.Size(450, 450) // maxSize (maximum tooth size)
+    );
+    
+    // Draw rectangles around detected teeth
+    const result = image.copy();
+    const color = new cv.Vec3(0, 255, 0); // Green color
+    
+    for (let i = 0; i < teeth.size(); i++) {
+      const rect = teeth.get(i);
+      result.drawRectangle(
+        new cv.Point(rect.x, rect.y),
+        new cv.Point(rect.x + rect.width, rect.y + rect.height),
+        color,
+        2
+      );
+      
+      // Label each detection
+      result.putText(
+        `Tooth ${i + 1}`,
+        new cv.Point(rect.x, rect.y - 5),
+        cv.FONT_HERSHEY_SIMPLEX,
+        0.6,
+        color,
+        2
+      );
+    }
+    
+    console.log(`✅ Detected ${teeth.size()} teeth using cascade classifier`);
+    return result;
+    
+  } catch (error) {
+    console.error('Cascade detection error:', error);
+    throw error;
+  }
+}
+
   /**
    * Detect teeth contours and shapes
    */
-  async detectTeethContours(image) {
+ /**  async detectTeethContours(image) {
     try {
       // Convert to grayscale
       const gray = image.cvtColor(cv.COLOR_BGR2GRAY);
@@ -200,7 +262,7 @@ class OpenCVAnalysisService {
       console.error('Contour detection error:', error);
       throw error;
     }
-  }
+  } */
 
   /**
    * Assess overall image quality for dental analysis
