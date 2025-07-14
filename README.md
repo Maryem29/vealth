@@ -19,7 +19,9 @@ Traditional horse age verification:
 
 ## ✨ Our Solution
 
-⋅˚₊‧ ୨ Empowering horse owners and vets with instant, AI-driven equine age estimation and dental health insights — all from a smartphone photo! ୧ ‧₊˚ ⋅
+Vealth is a mobile application that utilizes Artificial Intelligence to estimate a horse’s age and detect visible dental abnormalities from a simple photograph of the front teeth. It offers instant, accessible, and vet-verifiable results.
+
+⋅˚₊‧ ୨ Empowering horse owners and vets with instant, AI-driven equine age estimation and dental health insights;all from a smartphone photo! ୧ ‧₊˚ ⋅
 
 Vealth delivers:
 - ⚡ Results in 30 seconds
@@ -48,3 +50,11 @@ Health informatics students and developers. Driven by curiosity, care, and a lov
 
 ### Quick Setup on Codespaces
 bash "npm run dev" in terminal and you are ready to try out Vealth!
+
+---
+
+## User Feedback
+
+"There’s definitely a market for age estimation via incisors especially in the sales sector. People often claim horses are younger than they are so an app that can allow users to verify this information is valuable." — Herr Dr. med. Vet. Zimmer-Galler, Tann. This feedback highlights the demand for reliable age verification in the equine market.
+
+"Den Nutzen schätze ich hoch ein für Pferdebesitzer und für Veterinäre" - Dr. Christiane Benesch
