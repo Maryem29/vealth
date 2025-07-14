@@ -2,11 +2,6 @@
 ## AI-Powered Equine Age Estimation
 <p align="center">╭━━━━━∙⋆⋅⋆∙━━━━━╮</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/python-v3.8+-blue.svg)](https://www.python.org/)
-[![React Native](https://img.shields.io/badge/React_Native-0.72-61DAFB.svg)](https://reactnative.dev/)
-[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.0+-FF6F00.svg)](https://www.tensorflow.org/)
-
 ### For Better Health and More Wealth
 
 Vealth revolutionizes horse age estimation by using AI to analyze dental images, providing instant, accurate results at a fraction of traditional veterinary costs.
