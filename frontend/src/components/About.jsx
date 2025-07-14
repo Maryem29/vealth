@@ -27,24 +27,24 @@ const About = () => {
 
   const milestones = [
     {
-      year: "2024",
+      year: "2025",
       title: "Project Launch",
       description: "Vealth begins as an innovative project to make equine age estimation accessible to all horse owners."
     },
     {
-      year: "2024",
+      year: "2025",
       title: "AI Development",
       description: "Development of advanced computer vision models trained on equine dental characteristics."
     },
     {
-      year: "2024",
+      year: "2025",
       title: "Beta Release",
       description: "Launch of beta version with core features: image analysis, age estimation, and PDF reports."
     },
     {
       year: "Future",
       title: "Expansion",
-      description: "Plans for enhanced features, veterinary partnerships, and additional equine health tools."
+      description: "Plans for enhanced features, emproving our AI with data from specialists and deploying it, veterinary partnerships, and additional equine health tools."
     }
   ];
 
@@ -68,8 +68,8 @@ const About = () => {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h2>
             <p className="text-lg text-gray-700 leading-relaxed">
-              To democratize equine health assessment through cutting-edge AI technology, 
-              empowering horse owners with professional-grade tools while supporting 
+              To revolutionize equine health assessment through cutting-edge AI technology, 
+              empowering horse owners with professional grade tools while supporting 
               veterinary professionals in providing the best possible care.
             </p>
           </div>
@@ -129,8 +129,8 @@ const About = () => {
               <Award className="w-16 h-16 text-teal-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Our Solution</h3>
               <p className="text-gray-700">
-                AI-powered age estimation that's accurate, accessible, and affordable - 
-                putting professional-grade assessment tools in the hands of every horse owner.
+                AI-powered age estimation that's accurate, accessible, and affordable; 
+                putting professional grade assessment tools in the hands of every horse owner.
               </p>
             </div>
           </div>

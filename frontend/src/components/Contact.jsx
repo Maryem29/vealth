@@ -30,7 +30,7 @@ const Contact = () => {
     {
       name: "Kseniia Vinogradova",
       role: "Backend Developer & AI Developer",
-      bio: "Computer Science graduate with expertise in machine learning and veterinary technology. Passionate about using AI to improve animal welfare.",
+      bio: "Health Informatics student with a passion in machine learning. Aims to use AI to improve animal welfare.",
       email: "kseniia.vinogradova@stud.th-deg.de",
       github: "kseniiavi",
       linkedin: "kseniia-vinogradova-900468302",
@@ -39,7 +39,7 @@ const Contact = () => {
     {
       name: "Maryem Mohamed",
       role: "Full-Stack Developer & Product Manager",
-      bio: "Software engineering student specializing in web development and user experience design. Focused on creating intuitive interfaces for complex technologies.",
+      bio: "Health Informatics student with a passion for web development. Focused on creating intuitive interfaces for complex technologies.",
       email: "maryem.abdellah@stud.th-deg.de",
       github: "Maryem29",
       linkedin: "maryemabdellah29",
@@ -71,7 +71,7 @@ const Contact = () => {
   const faqs = [
     {
       question: "How accurate is Vealth?",
-      answer: "Our AI system provides age estimates with confidence scores. While highly accurate, it should supplement, not replace, professional veterinary assessment."
+      answer: "Our AI system provides age estimates with confidence scores. Our goal is to train out AI on data provided from top vet universities in Germany and from specialists for the most accurate results. While accurate, it should supplement, not replace, professional veterinary assessment."
     },
     {
       question: "Is my data secure?",
@@ -79,7 +79,7 @@ const Contact = () => {
     },
     {
       question: "Can I use this for official purposes?",
-      answer: "Vealth is designed for preliminary assessment and educational purposes. For official documentation, always consult with a qualified veterinarian."
+      answer: "Vealth is designed for preliminary assessment and educational purposes. For official documentation, always consult with a qualified veterinarian. Our suggestion is to download the report and send it to your vet for further inquiry."
     },
     {
       question: "What image quality do I need?",
