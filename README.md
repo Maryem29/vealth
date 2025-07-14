@@ -1,7 +1,7 @@
 # Vealth 🐴
 ## AI-Powered Equine Age Estimation
 
-### ⋅˚₊‧ 𐙚 ‧₊˚ ⋅ For Better Health and More Wealth ⋅˚₊‧ 𐙚 ‧₊˚ ⋅
+### For Better Health and More Wealth 
 
 Vealth revolutionizes horse age estimation by using AI to analyze dental images, providing instant, accurate results at a fraction of traditional veterinary costs.
 
